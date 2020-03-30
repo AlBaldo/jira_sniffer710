@@ -1,0 +1,12 @@
+language: java
+jdk:
+- openjdk8
+
+addons:
+  sonarcloud:
+    organization: "albaldo"
+    token: "7ecf61bac0d284b39dc713edf1b667d89b7bca0c"
+   
+script:
+- ant build
+- sonar-scanner
