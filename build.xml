@@ -3,7 +3,7 @@
               Any modifications will be overwritten.
               To include a user specific buildfile here, simply create one in the same
               directory with the processing instruction <?eclipse.ant.import?>
-              as the first entry and export the buildfile again. --><project basedir="." default="build" name="jira_sniffer">
+              as the first entry and export the buildfile again. --><project basedir="." default="build" name="jira_sniffer710">
     <property environment="env"/>
     <property name="ECLIPSE_HOME" value="../../eclipse/java-2019-12/eclipse/"/>
     <property name="debuglevel" value="source,lines,vars"/>
@@ -12,10 +12,12 @@
     <path id="JavaFX SDK.libraryclasspath">
         <pathelement location="../../.p2/pool/plugins/org.eclipse.fx.ide.css.jfx8_3.5.0.201907240300.jar"/>
     </path>
-    <path id="jira_sniffer.classpath">
+    <path id="jira_sniffer710.classpath">
         <pathelement location="bin"/>
         <path refid="JavaFX SDK.libraryclasspath"/>
         <pathelement location="src/lib/jfxrt.jar"/>
+        <pathelement location="src/lib/controlsfx-8.40.15.jar"/>
+        <pathelement location="src/lib/java-json.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
@@ -37,7 +39,7 @@
         <echo message="${ant.project.name}: ${ant.file}"/>
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
             <src path="src"/>
-            <classpath refid="jira_sniffer.classpath"/>
+            <classpath refid="jira_sniffer710.classpath"/>
         </javac>
     </target>
     <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
@@ -56,7 +58,7 @@
     </target>
     <target name="Main (5)">
         <java classname="logic.Main" failonerror="true" fork="yes">
-            <classpath refid="jira_sniffer.classpath"/>
+            <classpath refid="jira_sniffer710.classpath"/>
         </java>
     </target>
 </project>
