@@ -18,7 +18,6 @@ public class Log{
 		if(lg == null) {
 
 			ConsoleHandler ch = null;
-			FileHandler fh;
 			
 			l = new Log();
 			
@@ -26,14 +25,14 @@ public class Log{
 			
 
 	        LogManager.getLogManager().reset();
-	        lg.setLevel(Level.FINE);
+	        lg.setLevel(Level.ALL);
 	        
 	        ch = new ConsoleHandler();
 	        ch.setLevel(Level.FINE);
 	        lg.addHandler(ch);
 			
 			try {
-				fh = new FileHandler("logger.log", true);
+				FileHandler fh = new FileHandler("/logger.log", true);;
 				fh.setLevel(Level.SEVERE);
 		        lg.addHandler(fh);
 			}catch (IOException e) {

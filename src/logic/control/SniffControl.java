@@ -27,7 +27,7 @@ public class SniffControl {
 		
 		try {
 			tickets = retrieveTicketsId(jf.getUrl());
-			Log.getLog().infoMsg("Got the tickets, eg: " + tickets.get(0).getJSONObject(0).get("key").toString());
+			Log.getLog().severeMsg("Got the tickets, eg: " + tickets.get(0).getJSONObject(0).get("key").toString());
 		} catch (IOException e) {
 			Log.getLog().infoMsg("Seem to be some aythorization missing :(");
 		} catch (JSONException e) {
@@ -47,15 +47,17 @@ public class SniffControl {
 		Integer i = 0;
 		Integer total = 1;
 		
+		String tmp = "";
+		
 		List<JSONArray> t = new ArrayList<>();
 		//Get JSON API for closed bugs w/ AV in the project
 		do {
 			//Only gets a max of 1000 at a time, so must do this multiple times if bugs >1000
 			j = i + 1000;
-			url += "&startAt=" + i.toString() + "&maxResults=" + j.toString();
+			tmp = url + "&startAt=" + i.toString() + "&maxResults=" + j.toString();
 			
-			Log.getLog().infoMsg(url);			
-			JSONObject json = readJsonFromUrl(url);
+			Log.getLog().infoMsg(tmp);			
+			JSONObject json = readJsonFromUrl(tmp);
 			JSONArray issues = json.getJSONArray("issues");
 			
 			total = json.getInt("total");

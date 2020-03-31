@@ -16,13 +16,15 @@ import logic.control.SniffControl;
 import logic.utils.MyUtils;
 
 public class GrapherController {
+	private static final String RES_FS = "Resolved";
+	
 	private static final String[] basetypes = {"All", "Bug", "Improvement", "New Feature", "Task", "Test", "Wish"};
 	
-	private static final String[] basestatus = {"All", "Open", "In Progres", "Reopened", "Resolved", "Closed", "Patch Avaiable"};
+	private static final String[] basestatus = {"All", "Open", "In Progres", "Reopened", RES_FS, "Closed", "Patch Avaiable"};
 
 	private static final String[] baseresolution = {"All", "Unresolved", "Fixed", "Won't fix", "Duplicate", "Invalid", "Incomplete", 
 			"Cannot Reproduce", "Later", "Not A Problem", "Implemented", "Done", "Auto Closed", 
-			"Pending Closed", "REMIND", "Resolved", "Not A Bug", "Workaround", "Staged", "Delivered", 
+			"Pending Closed", "REMIND", RES_FS, "Not A Bug", "Workaround", "Staged", "Delivered", 
 			"Information Provided", "Works For Me", "Feedback Received", "Won't Do", "Abandoned"};
 	
 	
@@ -57,20 +59,14 @@ public class GrapherController {
 		projnTF.setText("PARQUET");
 		resolutionCCB.getCheckModel().check("Fixed");
 		statusCCB.getCheckModel().check("Closed");
-		statusCCB.getCheckModel().check("Resolved");
+		statusCCB.getCheckModel().check(RES_FS);
 		typeCCB.getCheckModel().check("Bug");
 		
-		resolutionCCB.getItemBooleanProperty(0).addListener(e->{
-			setupAllListener(resolutionCCB);
-		});
+		resolutionCCB.getItemBooleanProperty(0).addListener(e-> setupAllListener(resolutionCCB) );
 	
-		statusCCB.getItemBooleanProperty(0).addListener(e->{
-			setupAllListener(statusCCB);
-		});
+		statusCCB.getItemBooleanProperty(0).addListener(e-> setupAllListener(statusCCB) );
 		
-		typeCCB.getItemBooleanProperty(0).addListener(e->{
-			setupAllListener(typeCCB);
-		});
+		typeCCB.getItemBooleanProperty(0).addListener(e-> setupAllListener(typeCCB));
 		
 	
 		
@@ -126,7 +122,6 @@ public class GrapherController {
 		while(i < s.length()){
 			if(s.charAt(i) == ' ') {
 				sb.append(s.substring(j, i) + "%20");
-				System.out.println(s.substring(j, i));
 				j = i+1;
 			}
 			
