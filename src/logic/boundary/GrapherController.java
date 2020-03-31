@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.controlsfx.control.CheckComboBox;
 
-import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -14,25 +13,45 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import logic.control.SniffControl;
-import logic.utils.MyConstants;
 import logic.utils.MyUtils;
 
 public class GrapherController {
+	private static final String[] basetypes = {"All", "Bug", "Improvement", "New Feature", "Task", "Test", "Wish"};
+	
+	private static final String[] basestatus = {"All", "Open", "In Progres", "Reopened", "Resolved", "Closed", "Patch Avaiable"};
+
+	private static final String[] baseresolution = {"All", "Unresolved", "Fixed", "Won't fix", "Duplicate", "Invalid", "Incomplete", 
+			"Cannot Reproduce", "Later", "Not A Problem", "Implemented", "Done", "Auto Closed", 
+			"Pending Closed", "REMIND", "Resolved", "Not A Bug", "Workaround", "Staged", "Delivered", 
+			"Information Provided", "Works For Me", "Feedback Received", "Won't Do", "Abandoned"};
+	
 	
 	@FXML
-	Button goboxesBtn, gourlBtn;
+	Button goboxesBtn;
 	
 	@FXML
-	CheckComboBox<String> resolutionCCB, statusCCB, typeCCB;
+	Button gourlBtn;
 	
 	@FXML
-	TextField projnTF, urlTF;
+	CheckComboBox<String> resolutionCCB;
+	
+	@FXML
+	CheckComboBox<String> statusCCB;
+	
+	@FXML
+	CheckComboBox<String> typeCCB;
+	
+	@FXML
+	TextField projnTF;
+	
+	@FXML
+	TextField urlTF;
 	
 	@FXML
 	public void initialize() {
-		resolutionCCB.getItems().addAll(FXCollections.observableList(Arrays.asList(MyConstants.baseresolution)));
-		statusCCB.getItems().addAll(FXCollections.observableList(Arrays.asList(MyConstants.basestatus)));
-		typeCCB.getItems().addAll(FXCollections.observableList(Arrays.asList(MyConstants.basetypes)));
+		resolutionCCB.getItems().addAll(Arrays.asList(baseresolution));
+		statusCCB.getItems().addAll(Arrays.asList(basestatus));
+		typeCCB.getItems().addAll(Arrays.asList(basetypes));
 		
 		
 		projnTF.setText("PARQUET");
@@ -42,51 +61,15 @@ public class GrapherController {
 		typeCCB.getCheckModel().check("Bug");
 		
 		resolutionCCB.getItemBooleanProperty(0).addListener(e->{
-			if(resolutionCCB.getCheckModel().isChecked(0)){
-				int n = resolutionCCB.getCheckModel().getItemCount();
-				
-				for(int i = 1; i < n; i++) {
-					resolutionCCB.getCheckModel().check(i);
-				}
-			}else {
-				int n = resolutionCCB.getCheckModel().getItemCount();
-				
-				for(int i = 1; i < n; i++) {
-					resolutionCCB.getCheckModel().clearCheck(i);
-				}
-			}
+			setupAllListener(resolutionCCB);
 		});
 	
 		statusCCB.getItemBooleanProperty(0).addListener(e->{
-			if(statusCCB.getCheckModel().isChecked(0)){
-				int n = statusCCB.getCheckModel().getItemCount();
-				
-				for(int i = 1; i < n; i++) {
-					statusCCB.getCheckModel().check(i);
-				}
-			}else {
-				int n = statusCCB.getCheckModel().getItemCount();
-				
-				for(int i = 1; i < n; i++) {
-					statusCCB.getCheckModel().clearCheck(i);
-				}
-			}
+			setupAllListener(statusCCB);
 		});
 		
 		typeCCB.getItemBooleanProperty(0).addListener(e->{
-			if(typeCCB.getCheckModel().isChecked(0)){
-				int n = typeCCB.getCheckModel().getItemCount();
-				
-				for(int i = 1; i < n; i++) {
-					typeCCB.getCheckModel().check(i);
-				}
-			}else {
-				int n = typeCCB.getCheckModel().getItemCount();
-				
-				for(int i = 1; i < n; i++) {
-					typeCCB.getCheckModel().clearCheck(i);
-				}
-			}
+			setupAllListener(typeCCB);
 		});
 		
 	
@@ -100,9 +83,22 @@ public class GrapherController {
 		goboxesBtn.setOnMouseClicked(e -> {
 			if(checkprojname()) {
 				String name = projnTF.getText().trim();
+				
 				List<String> resol = new ArrayList<>(resolutionCCB.getCheckModel().getCheckedItems());
 				List<String> stat = new ArrayList<>(statusCCB.getCheckModel().getCheckedItems());
 				List<String> typ = new ArrayList<>(typeCCB.getCheckModel().getCheckedItems());
+				
+				for(int i = 0; i < resol.size(); i++) {
+					resol.set(i, removeWhiteSpaces(resol.get(i)));
+				}
+				
+				for(int i = 0; i < stat.size(); i++) {
+					stat.set(i, removeWhiteSpaces(stat.get(i)));
+				}
+				
+				for(int i = 0; i < typ.size(); i++) {
+					typ.set(i, removeWhiteSpaces(typ.get(i)));
+				}
 				
 				SniffControl sc = new SniffControl();
 				
@@ -119,6 +115,42 @@ public class GrapherController {
 				sc.snifJira(url);
 			}
 		});
+	}
+
+	private String removeWhiteSpaces(String s) {
+		StringBuilder sb = new StringBuilder();
+		
+		int i = 0;
+		int j = 0;
+		
+		while(i < s.length()){
+			if(s.charAt(i) == ' ') {
+				sb.append(s.substring(j, i) + "%20");
+				System.out.println(s.substring(j, i));
+				j = i+1;
+			}
+			
+			i++;
+		}
+		sb.append(s.substring(j));
+		
+		return sb.toString();
+	}
+
+	private void setupAllListener(CheckComboBox<String> ccombox) {
+		if(ccombox.getCheckModel().isChecked(0)){
+			int n = ccombox.getCheckModel().getItemCount();
+			
+			for(int i = 1; i < n; i++) {
+				ccombox.getCheckModel().check(i);
+			}
+		}else {
+			int n = ccombox.getCheckModel().getItemCount();
+			
+			for(int i = 1; i < n; i++) {
+				ccombox.getCheckModel().clearCheck(i);
+			}
+		}
 	}
 
 	private boolean checkurlbox() {

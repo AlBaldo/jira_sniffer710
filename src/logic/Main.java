@@ -21,8 +21,8 @@ public class Main extends Application {
 			
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/resources/startscene.fxml"));
 			loader.setController(gc);
-
 			AnchorPane root = loader.load();
+
 
 			Scene scene = new Scene(root);
 			
@@ -31,8 +31,8 @@ public class Main extends Application {
 			primaryStage.show();
 			
 		} catch (IOException e) {
+			e.printStackTrace();
 			Log.getLog().debugMsg("startscene.fxml not found");
-			return;
 		}
 	}
 	

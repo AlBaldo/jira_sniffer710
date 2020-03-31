@@ -11,20 +11,22 @@ import java.util.logging.Logger;
 public class Log{
 	private static Log l = null;
 	private static Logger lg = null;
-	private static ConsoleHandler ch = null;
-	private static FileHandler fh;
 	
 	private Log(){}
 	
-	public synchronized static Log getLog() {
+	public static synchronized Log getLog() {
 		if(lg == null) {
+
+			ConsoleHandler ch = null;
+			FileHandler fh;
+			
 			l = new Log();
 			
 			lg = Logger.getLogger("jslog");
 			
 
 	        LogManager.getLogManager().reset();
-	        lg.setLevel(Level.ALL);
+	        lg.setLevel(Level.FINE);
 	        
 	        ch = new ConsoleHandler();
 	        ch.setLevel(Level.FINE);

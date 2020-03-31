@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,9 +29,9 @@ public class SniffControl {
 			tickets = retrieveTicketsId(jf.getUrl());
 			Log.getLog().infoMsg("Got the tickets, eg: " + tickets.get(0).getJSONObject(0).get("key").toString());
 		} catch (IOException e) {
-			Log.getLog().infoMsg("IO error");
+			Log.getLog().infoMsg("Seem to be some aythorization missing :(");
 		} catch (JSONException e) {
-			Log.getLog().infoMsg("Error retrieving tickets");
+			Log.getLog().infoMsg("No match found :(");
 		}
 		
 	}
@@ -43,7 +43,10 @@ public class SniffControl {
 	
 	public static List<JSONArray> retrieveTicketsId(String url) throws IOException, JSONException {
 		   
-		Integer j = 0, i = 0, total = 1;
+		Integer j = 0;
+		Integer i = 0;
+		Integer total = 1;
+		
 		List<JSONArray> t = new ArrayList<>();
 		//Get JSON API for closed bugs w/ AV in the project
 		do {
@@ -56,10 +59,10 @@ public class SniffControl {
 			JSONArray issues = json.getJSONArray("issues");
 			
 			total = json.getInt("total");
-			for (; i < total && i < j; i++) {
-				//TODO String key = issues.getJSONObject(i%1000).get("key").toString();
-			}
+			
 			t.add(issues);
+
+			i += 1000;
 			
 		}while (i < total);
 		
@@ -68,27 +71,24 @@ public class SniffControl {
 	
 
 	public static JSONObject readJsonFromUrl(String url) throws IOException, JSONException {
-		InputStream is = new URL(url).openStream();
-		try {
-			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+		
+
+		try (InputStream is = new URL(url).openStream();
+				BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));){
 			String jsonText = readAll(rd);
-			JSONObject json = new JSONObject(jsonText);
-			return json;
-		} finally {
-			is.close();
+			return new JSONObject(jsonText);
 		}
 	}
 
 	   
 	public static JSONArray readJsonArrayFromUrl(String url) throws IOException, JSONException {
-		InputStream is = new URL(url).openStream();
-		try {
-			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+		
+		try (InputStream is = new URL(url).openStream();
+			BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));){
+			
 			String jsonText = readAll(rd);
-			JSONArray json = new JSONArray(jsonText);
-			return json;
-		} finally {
-			is.close();
+			
+			return new JSONArray(jsonText);
 		}
 	}
 	   

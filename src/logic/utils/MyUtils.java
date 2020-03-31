@@ -14,4 +14,6 @@ public class MyUtils {
 
 		alert.showAndWait();
     }
+    
+    private MyUtils(){}
 }

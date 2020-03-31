@@ -8,7 +8,10 @@ public class JiraFilter {
 	
 	private String url;
 	
-	private List<String> resolution, type, status;
+	private List<String> resolution;
+	private List<String> type;
+	private List<String> status;
+	
 	private String name;
 	
 
@@ -31,27 +34,27 @@ public class JiraFilter {
 	}
 	
 	private String composeUrl() {
-		String url = "https://issues.apache.org/jira/rest/api/2/search?jql=project=%22"
-                + this.name + "%22";
+		StringBuilder sbuilder = new StringBuilder("https://issues.apache.org/jira/rest/api/2/search?jql=project=%22"
+                + this.name + "%22");
 		
-		if(type.size() > 0) {
-			url += "AND" + addlistof("t");
+		if(!type.isEmpty()) {
+			sbuilder.append("AND" + addlistof("t"));
 		}
-		if(status.size() > 0) {
-			url += "AND" + addlistof("s");
+		if(!status.isEmpty()) {
+			sbuilder.append("AND" + addlistof("s"));
 		}
-		if(resolution.size() > 0) {
-			url += "AND" + addlistof("r");
+		if(!resolution.isEmpty()) {
+			sbuilder.append("AND" + addlistof("r"));
 		}
 		
-		url += "&fields=key,resolutiondate,versions,created";
+		sbuilder.append("&fields=key,resolutiondate,versions,created");
 		
-		return url;
+		return sbuilder.toString();
 		
 	}
 
 	private String addlistof(String code){
-		String tmp = "";
+		StringBuilder tmp = new StringBuilder("");
 		List<String> li;
 		
 		switch(code) {
@@ -70,36 +73,36 @@ public class JiraFilter {
 		}
 		
 		if(li.size() > 1) {
-			tmp += "(%22";
+			tmp.append("(%22");
 		}else {
-			tmp += "%22";
+			tmp.append("%22");
 		}
 		
 		for(int i = 0; i < li.size(); i++) {
 			
 			switch(code) {
 				case "t":
-					tmp += "issueType%22=%22" + type.get(i) + "%22";
+					tmp.append("issueType%22=%22" + type.get(i) + "%22");
 					break;
 				case "s":
-					tmp += "status%22=%22" + status.get(i) + "%22";
+					tmp.append("status%22=%22" + status.get(i) + "%22");
 					break;
 				case "r":
-					tmp += "resolution%22=%22" + resolution.get(i) + "%22";
+					tmp.append("resolution%22=%22" + resolution.get(i) + "%22");
 					break;
 				default:
 					Log.getLog().severeMsg("Code is not supposed to get here!");
 					return "";
 			}
 			if(i + 1 != li.size()) {
-				tmp += "OR%22";
+				tmp.append("OR%22");
 			}
 		}
 		if(li.size() > 1) {
-			tmp += ")";
+			tmp.append(")");
 		}
 			
-		return tmp;	
+		return tmp.toString();	
 		
 	}
 
