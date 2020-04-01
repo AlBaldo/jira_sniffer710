@@ -32,7 +32,7 @@ public class Log{
 	        lg.addHandler(ch);
 			
 			try {
-				FileHandler fh = new FileHandler("/logger.log", true);;
+				FileHandler fh = new FileHandler("/logger.log", true);
 				fh.setLevel(Level.SEVERE);
 		        lg.addHandler(fh);
 			}catch (IOException e) {

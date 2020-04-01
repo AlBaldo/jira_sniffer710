@@ -7,13 +7,20 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import logic.entity.ChartData;
 import logic.entity.JiraFilter;
 import logic.utils.Log;
 import logic.utils.MyUtils;
@@ -27,13 +34,100 @@ public class SniffControl {
 		
 		try {
 			tickets = retrieveTicketsId(jf.getUrl());
-			Log.getLog().severeMsg("Got the tickets, eg: " + tickets.get(0).getJSONObject(0).get("key").toString());
+			
+			if(typ.contains("Bug")) {
+				
+				List<LocalDate> bugsDt = getOrderedDatesFromIssues(tickets);
+				
+				List<ChartData> lcd = getChartDataFromDateList(bugsDt);
+
+				MyIssueGrapher mig = new MyIssueGrapher("Bug graph: " + name, "Bugs", "Time", lcd);
+				
+				Log.getLog().infoMsg("About to show graph");
+				mig.showGraph();
+			}else {
+				Log.getLog().infoMsg("Got the tickets, eg: " + tickets.get(0).getJSONObject(0).get("key").toString());	
+			}
 		} catch (IOException e) {
-			Log.getLog().infoMsg("Seem to be some aythorization missing :(");
+			MyUtils.fastAlert("Oops!", "Unauthorized request.");
 		} catch (JSONException e) {
 			Log.getLog().infoMsg("No match found :(");
+		} catch (ParseException e) {
+			Log.getLog().debugMsg("Error parsing dates :(");
 		}
 		
+	}
+
+	private List<ChartData> getChartDataFromDateList(List<LocalDate> bugsDt) {
+		List<ChartData> lcd = new ArrayList<>();
+		int cursor = 0;
+		
+		int month;
+		int year;
+		int y;
+		
+		do{
+			month = bugsDt.get(cursor).getMonthValue();
+			year = bugsDt.get(cursor).getYear();
+			y = getNBugsForCurrent(bugsDt, cursor + 1);
+			
+			lcd.add(new ChartData(month, year, y));
+			
+			cursor += y;
+
+		}while(cursor + 1 < bugsDt.size());
+		
+		return lcd;
+	}
+
+	private int getNBugsForCurrent(List<LocalDate> bugsDt, int cursor) {
+		int n = 0;
+		
+		for(int i = cursor; i < bugsDt.size(); i++){
+			n++;
+			if(bugsDt.get(i-1).getYear() == bugsDt.get(i).getYear()){
+				if(bugsDt.get(i-1).getMonthValue() < bugsDt.get(i).getMonthValue()){
+					return n;
+				}else if(bugsDt.get(i-1).getMonthValue() == bugsDt.get(i).getMonthValue()) {
+					continue;
+				}else {
+					Log.getLog().debugMsg("Month error: dates should be sorted");
+				}
+				
+			}else if(bugsDt.get(i-1).getYear() < bugsDt.get(i).getYear()){
+				return n;
+			}else {
+				Log.getLog().debugMsg("Year error: dates should be sorted");
+			}
+		}
+		
+		return n;
+	}
+
+	private List<LocalDate> getOrderedDatesFromIssues(List<JSONArray> tickets) throws JSONException, ParseException {
+		List<LocalDate> dts = new ArrayList<>();
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+	
+		for(JSONArray ja : tickets) {
+			
+			int size = ja.length();
+			for(int i = 0; i < size; i++) {
+
+				dts.add(sdf.parse(ja.getJSONObject(i).getJSONObject("fields").get("resolutiondate").toString())
+						.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+			}
+		}
+		
+		Collections.sort(dts, new Comparator<LocalDate>() {
+			public int compare(LocalDate o1, LocalDate o2) {
+				if (o1 == null || o2 == null)
+					return 0;
+				return o1.compareTo(o2);
+			}
+		});
+			
+		return dts;
 	}
 
 	public void snifJira(String url) {
@@ -58,10 +152,9 @@ public class SniffControl {
 			
 			Log.getLog().infoMsg(tmp);			
 			JSONObject json = readJsonFromUrl(tmp);
-			JSONArray issues = json.getJSONArray("issues");
+			JSONArray issues = json.getJSONArray("issues");			
 			
 			total = json.getInt("total");
-			
 			t.add(issues);
 
 			i += 1000;
