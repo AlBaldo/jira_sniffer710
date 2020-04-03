@@ -31,7 +31,6 @@ public class Main extends Application {
 			primaryStage.show();
 			
 		} catch (IOException e) {
-			e.printStackTrace();
 			Log.getLog().debugMsg("startscene.fxml not found");
 		}
 	}

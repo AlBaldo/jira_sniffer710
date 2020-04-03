@@ -13,7 +13,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -28,26 +27,11 @@ import logic.utils.MyUtils;
 public class SniffControl {
 
 	public void snifJira(String name, List<String> resol, List<String> stat, List<String> typ) {
-		List<JSONArray> tickets;
 		
 		JiraFilter jf = new JiraFilter(name, resol, stat, typ);
 		
 		try {
-			tickets = retrieveTicketsId(jf.getUrl());
-			
-			if(typ.contains("Bug")) {
-				
-				List<LocalDate> bugsDt = getOrderedDatesFromIssues(tickets);
-				
-				List<ChartData> lcd = getChartDataFromDateList(bugsDt);
-
-				MyIssueGrapher mig = new MyIssueGrapher("Bug graph: " + name, "Bugs", "Time", lcd);
-				
-				Log.getLog().infoMsg("About to show graph");
-				mig.showGraph();
-			}else {
-				Log.getLog().infoMsg("Got the tickets, eg: " + tickets.get(0).getJSONObject(0).get("key").toString());	
-			}
+			getDataByUrlAndShowGraph(jf);	
 		} catch (IOException e) {
 			MyUtils.fastAlert("Oops!", "Unauthorized request.");
 		} catch (JSONException e) {
@@ -56,6 +40,26 @@ public class SniffControl {
 			Log.getLog().debugMsg("Error parsing dates :(");
 		}
 		
+	}
+
+	private void getDataByUrlAndShowGraph(JiraFilter jf) throws IOException, JSONException, ParseException {
+		List<JSONArray> tickets;
+		
+		tickets = retrieveTicketsId(jf.getUrl());	
+		if(jf.getType().contains("Bug")) {
+			
+			List<LocalDate> bugsDt = getOrderedDatesFromIssues(tickets);
+			
+			List<ChartData> lcd = getChartDataFromDateList(bugsDt);
+
+			MyIssueGrapher mig = new MyIssueGrapher(lcd);
+			
+			Log.getLog().infoMsg("About to show graph");
+			mig.showGraph("Bug graph: " + jf.getName(), "Bugs", "Time");
+
+		}else {
+			Log.getLog().infoMsg("Got the tickets, eg: " + tickets.get(0).getJSONObject(0).get("key").toString());	
+		}
 	}
 
 	private List<ChartData> getChartDataFromDateList(List<LocalDate> bugsDt) {
@@ -88,9 +92,7 @@ public class SniffControl {
 			if(bugsDt.get(i-1).getYear() == bugsDt.get(i).getYear()){
 				if(bugsDt.get(i-1).getMonthValue() < bugsDt.get(i).getMonthValue()){
 					return n;
-				}else if(bugsDt.get(i-1).getMonthValue() == bugsDt.get(i).getMonthValue()) {
-					continue;
-				}else {
+				}else if(bugsDt.get(i-1).getMonthValue() > bugsDt.get(i).getMonthValue()) {
 					Log.getLog().debugMsg("Month error: dates should be sorted");
 				}
 				
@@ -119,20 +121,25 @@ public class SniffControl {
 			}
 		}
 		
-		Collections.sort(dts, new Comparator<LocalDate>() {
-			public int compare(LocalDate o1, LocalDate o2) {
-				if (o1 == null || o2 == null)
-					return 0;
-				return o1.compareTo(o2);
-			}
+		Collections.sort(dts, (o1, o2) -> {
+			if (o1 == null || o2 == null)
+				return 0;
+			return o1.compareTo(o2);
 		});
 			
 		return dts;
 	}
 
 	public void snifJira(String url) {
-		
-		MyUtils.fastAlert("", url);
+		try {
+			getDataByUrlAndShowGraph(new JiraFilter(url));
+		}catch (IOException e) {
+			MyUtils.fastAlert("Oops!", "Unauthorized request.");
+		} catch (JSONException e) {
+			Log.getLog().infoMsg("No match found :(");
+		} catch (ParseException e) {
+			Log.getLog().debugMsg("Error parsing dates :(");
+		}
 	}
 	
 	public static List<JSONArray> retrieveTicketsId(String url) throws IOException, JSONException {

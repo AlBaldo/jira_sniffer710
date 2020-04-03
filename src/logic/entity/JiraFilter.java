@@ -110,4 +110,53 @@ public class JiraFilter {
 		return url;
 	}
 
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+
+	public List<String> getResolution() {
+		return resolution;
+	}
+
+
+	public void setResolution(List<String> resolution) {
+		this.resolution = resolution;
+	}
+
+
+	public List<String> getType() {
+		return type;
+	}
+
+
+	public void setType(List<String> type) {
+		this.type = type;
+	}
+
+
+	public List<String> getStatus() {
+		return status;
+	}
+
+
+	public void setStatus(List<String> status) {
+		this.status = status;
+	}
+
+
+	public String getName() {
+		return name;
+	}
+
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+
+
+	
+	
+	
 }
