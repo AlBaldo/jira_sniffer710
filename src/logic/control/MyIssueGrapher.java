@@ -185,7 +185,9 @@ public class MyIssueGrapher{
 			}
 			
 			@Override
-			public void chartMouseClicked(ChartMouseEvent e) {}
+			public void chartMouseClicked(ChartMouseEvent e) {
+				//ignored because unnecessary
+			}
 
 		});
 
@@ -209,7 +211,7 @@ public class MyIssueGrapher{
 	}
 
 	private XYDataset createDataset(List<ChartData> lcd) {
-		TimeSeriesCollection dataset = new TimeSeriesCollection();  
+		TimeSeriesCollection tsc = new TimeSeriesCollection();  
 		  
 		ts = new TimeSeries("Fixed Bugs");
 		
@@ -218,14 +220,14 @@ public class MyIssueGrapher{
 		}
 		
 	
-	    dataset.addSeries(ts);
+	    tsc.addSeries(ts);
 	    
-	    dataset.addSeries(new TimeSeries("Lower Control Limit"));
-	    dataset.addSeries(new TimeSeries("Upper Control Limit"));
-	    dataset.addSeries(new TimeSeries("Mean Control Limit"));
+	    tsc.addSeries(new TimeSeries("Lower Control Limit"));
+	    tsc.addSeries(new TimeSeries("Upper Control Limit"));
+	    tsc.addSeries(new TimeSeries("Mean Control Limit"));
 	    
 	      
-	    return dataset;
+	    return tsc;
 	}
 
 	private void getDatasFromList(List<ChartData> lcd) {
