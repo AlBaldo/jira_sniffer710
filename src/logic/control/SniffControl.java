@@ -39,9 +39,9 @@ public class SniffControl {
 		try {
 			getDataByUrlAndShowGraph(jf);	
 		} catch (IOException e) {
-			MyUtils.fastAlert("Oops!", "Unauthorized request.");
+			MyUtils.fastAlert(MyConstants.OPS_M, MyConstants.UNAUTH_REQUEST);
 		} catch (JSONException e) {
-			Log.getLog().infoMsg("No match found :(");
+			Log.getLog().infoMsg(MyConstants.NO_MATCH_FOUND);
 		} catch (ParseException e) {
 			Log.getLog().debugMsg("Error parsing dates :(");
 		}
@@ -96,16 +96,16 @@ public class SniffControl {
 				for(int i = size-1; i > -1; i--) {
 					jo = ja.getJSONObject(i);
 					nextline[0] = jo.get("key").toString();
-					nextline[1] = jo.getJSONObject("fields").getString("resolutiondate");
+					nextline[1] = jo.getJSONObject("fields").getString(MyConstants.RES_DATE);
 					nextline[2] = jo.getJSONObject("fields").getString("created");
 					cw.writeNext(nextline);
 				}
 			}
 			
 		} catch (IOException e) {
-			MyUtils.fastAlert("Oops!", "Unauthorized request.");
+			MyUtils.fastAlert(MyConstants.OPS_M, MyConstants.UNAUTH_REQUEST);
 		} catch (JSONException e) {
-			Log.getLog().infoMsg("No match found :(");
+			Log.getLog().infoMsg(MyConstants.NO_MATCH_FOUND);
 		}
 		MyUtils.fastAlert("Complete!", "Export completed with no errors :)");
 	}
@@ -119,9 +119,9 @@ public class SniffControl {
 		try {
 			getDataByUrlAndShowGraph(new JiraFilter(url));
 		}catch (IOException e) {
-			MyUtils.fastAlert("Oops!", "Unauthorized request.");
+			MyUtils.fastAlert(MyConstants.OPS_M, MyConstants.UNAUTH_REQUEST);
 		} catch (JSONException e) {
-			Log.getLog().infoMsg("No match found :(");
+			Log.getLog().infoMsg(MyConstants.NO_MATCH_FOUND);
 		} catch (ParseException e) {
 			Log.getLog().debugMsg("Error parsing dates :(");
 		}
@@ -186,12 +186,12 @@ public class SniffControl {
 			
 			int size = ja.length();
 			for(int i = 0; i < size; i++) {
-				tmpstr = ja.getJSONObject(i).getJSONObject(MyConstants.FIELDS_JSON).get("resolutiondate").toString();
+				tmpstr = ja.getJSONObject(i).getJSONObject(MyConstants.FIELDS_JSON).get(MyConstants.RES_DATE).toString();
 				if(tmpstr.equals("null")) {
 					dts.add(sdf.parse(ja.getJSONObject(i).getJSONObject(MyConstants.FIELDS_JSON).get("created").toString())
 							.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
 				}else {
-					dts.add(sdf.parse(ja.getJSONObject(i).getJSONObject(MyConstants.FIELDS_JSON).get("resolutiondate").toString())
+					dts.add(sdf.parse(ja.getJSONObject(i).getJSONObject(MyConstants.FIELDS_JSON).get(MyConstants.RES_DATE).toString())
 						.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
 				}
 			}
