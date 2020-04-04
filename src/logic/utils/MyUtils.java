@@ -26,5 +26,6 @@ public class MyUtils {
         return new ImageIcon(resizedImage);
     }
     
+    
     private MyUtils(){}
 }

@@ -11,6 +11,9 @@ import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -49,7 +52,7 @@ public class MyIssueGrapher{
 	private double uclval;
 	XYDataset dataset;
 	
-
+	
     private CrosshairOverlay crosshairOverlay = new CrosshairOverlay();
     private Crosshair xCrosshair = new Crosshair(Double.NaN, Color.GRAY, new BasicStroke(0f));
     private Crosshair yCrosshair = new Crosshair(Double.NaN, Color.GRAY, new BasicStroke(0f));
@@ -111,8 +114,6 @@ public class MyIssueGrapher{
 		plot.getRenderer().setSeriesStroke(3, new BasicStroke(3.0f));
 		
 		plot.getRenderer().setSeriesShape(0, circle);
-		plot.setRangeCrosshairLockedOnData(true);
-		plot.setDomainCrosshairLockedOnData(true);
 		
 		plot.setDomainPannable(true);
 		plot.setRangePannable(true);
@@ -162,10 +163,20 @@ public class MyIssueGrapher{
 		jbtns[3].addActionListener(e -> panel.zoomInRange(1, 2));
 		
 		xCrosshair.setLabelVisible(true);
+		xCrosshair.setLabelGenerator(ch -> dubToStr(ch.getValue()));
+		xCrosshair.setLabelOutlineVisible(false);
+		xCrosshair.setLabelBackgroundPaint(new Color(1f, 1f, 1f, 0.7f));
+		xCrosshair.setLabelFont(yCrosshair.getLabelFont().deriveFont(11f));
+		
 		yCrosshair.setLabelVisible(true);
-			
+		yCrosshair.setLabelOutlineVisible(false);
+		yCrosshair.setLabelBackgroundPaint(new Color(1f, 1f, 1f, 0.7f));
+		yCrosshair.setLabelFont(yCrosshair.getLabelFont().deriveFont(11f));
+		
+
 		crosshairOverlay.addDomainCrosshair(xCrosshair);
 		crosshairOverlay.addRangeCrosshair(yCrosshair);
+		
 		
 		panel.addOverlay(crosshairOverlay);
 			
@@ -180,9 +191,13 @@ public class MyIssueGrapher{
 			    double x = xAxis.java2DToValue(event.getTrigger().getX(), dataArea, 
 			            RectangleEdge.BOTTOM);
 			    double y = DatasetUtilities.findYValue(plot.getDataset(), 0, x);
-			    
-				getYOverlay().setValue(Math.round(y));
+
+			    if(isMonthInTimeseries(x)) {
+			    	getXOverlay().setValue(x);
+			    	getYOverlay().setValue(Math.round(y));
+			    }
 			}
+			
 			
 			@Override
 			public void chartMouseClicked(ChartMouseEvent e) {
@@ -205,9 +220,38 @@ public class MyIssueGrapher{
 		
 		});  
 	}
+
+	private boolean isMonthInTimeseries(double d) {
+		TimeSeriesCollection tsc = (TimeSeriesCollection) dataset;
+		TimeSeries t = tsc.getSeries(0);
+		Month rtp;
+		
+		int s = t.getTimePeriods().size();
+    	
+		for(int i = 0; i < s; i++) {
+			rtp = (Month) t.getDataItem(i).getPeriod();
+			if(dubToStr(d).equals("1-" + rtp.getMonth() + "-" + rtp.getYearValue())) {
+				return true;
+			}	
+		}
+		return false;
+	}
+
+    private String dubToStr(double x) {
+    	long millis = (new Double(x)).longValue();
+
+    	LocalDate date =
+    		    Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate();
+    	
+    	return date.getDayOfMonth() + "-" + date.getMonthValue() + "-" + date.getYear();
+    }
 	
 	private Crosshair getYOverlay() {
 		return yCrosshair;
+	}
+	
+	private Crosshair getXOverlay() {
+		return xCrosshair;
 	}
 
 	private XYDataset createDataset(List<ChartData> lcd) {

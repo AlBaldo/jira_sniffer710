@@ -46,19 +46,23 @@ public class SniffControl {
 		List<JSONArray> tickets;
 		
 		tickets = retrieveTicketsId(jf.getUrl());	
-		if(jf.getType().contains("Bug")) {
+		if(jf.getType().size() == 1 && jf.getType().get(0).equals("Bug")) {
 			
 			List<LocalDate> bugsDt = getOrderedDatesFromIssues(tickets);
 			
 			List<ChartData> lcd = getChartDataFromDateList(bugsDt);
 
-			MyIssueGrapher mig = new MyIssueGrapher(lcd);
+			if(lcd == null) {
+				MyUtils.fastAlert(":(", "Nothing to show");
+			}else {
+				MyIssueGrapher mig = new MyIssueGrapher(lcd);
 			
-			Log.getLog().infoMsg("About to show graph");
-			mig.showGraph("Bug graph: " + jf.getName(), "Bugs", "Time");
-
+				Log.getLog().infoMsg("About to show graph");
+				mig.showGraph("Bug graph: " + jf.getName(), "Bugs", "Time");
+			}
 		}else {
-			Log.getLog().infoMsg("Got the tickets, eg: " + tickets.get(0).getJSONObject(0).get("key").toString());	
+			Log.getLog().infoMsg("Got the tickets, eg: " + tickets.get(0).getJSONObject(0).get("key").toString());
+			MyUtils.fastAlert("Unimplemented yet", "The tickets exist but tecnology is not there to show them.");
 		}
 	}
 
@@ -69,6 +73,10 @@ public class SniffControl {
 		int month;
 		int year;
 		int y;
+		
+		if(bugsDt.size() == 0) {
+			return null;
+		}
 		
 		do{
 			month = bugsDt.get(cursor).getMonthValue();
@@ -108,6 +116,7 @@ public class SniffControl {
 
 	private List<LocalDate> getOrderedDatesFromIssues(List<JSONArray> tickets) throws JSONException, ParseException {
 		List<LocalDate> dts = new ArrayList<>();
+		String tmpstr;
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 	
@@ -115,9 +124,14 @@ public class SniffControl {
 			
 			int size = ja.length();
 			for(int i = 0; i < size; i++) {
-
-				dts.add(sdf.parse(ja.getJSONObject(i).getJSONObject("fields").get("resolutiondate").toString())
+				tmpstr = ja.getJSONObject(i).getJSONObject("fields").get("resolutiondate").toString();
+				if(tmpstr.equals("null")) {
+					dts.add(sdf.parse(ja.getJSONObject(i).getJSONObject("fields").get("created").toString())
+							.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+				}else {
+					dts.add(sdf.parse(ja.getJSONObject(i).getJSONObject("fields").get("resolutiondate").toString())
 						.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+				}
 			}
 		}
 		
