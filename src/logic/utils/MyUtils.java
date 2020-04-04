@@ -4,6 +4,8 @@ import java.awt.Image;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -18,6 +20,10 @@ public class MyUtils {
 		alert.setContentText(message);
 
 		alert.showAndWait();
+    }
+    
+    public static boolean ynAlert(String title, String message) {
+    	return JOptionPane.showConfirmDialog(new JFrame(), message, title, JOptionPane.YES_NO_OPTION) == 0;
     }
     
     public static Icon resizeIcon(ImageIcon icon, int resizedWidth, int resizedHeight) {

@@ -35,6 +35,12 @@ public class GrapherController {
 	Button gourlBtn;
 	
 	@FXML
+	Button exportBtn;
+	
+	@FXML
+	Button showUrlBtn;
+	
+	@FXML
 	CheckComboBox<String> resolutionCCB;
 	
 	@FXML
@@ -76,29 +82,29 @@ public class GrapherController {
 		gourlBtn.setPadding(new Insets(0, 3, 0, 3));
 		gourlBtn.setGraphic(new ImageView(new Image("/resources/images/right_blue_arrow_40x40.png")));
 		
+		exportBtn.setPadding(new Insets(0, 5, 0, 5));
+		exportBtn.setGraphic(new ImageView(new Image("/resources/images/file_export_icon_40x40.png")));
+		
+		showUrlBtn.setOnMouseClicked(e-> {
+			if(checkprojname()) {
+				String name = projnTF.getText().trim();
+				
+				List<List<String>> params = getResolStatNType();
+
+				SniffControl sc = new SniffControl();
+				sc.showUrl(name, params.get(0), params.get(1), params.get(2));
+			}
+		});
+		
 		goboxesBtn.setOnMouseClicked(e -> {
 			if(checkprojname()) {
 				String name = projnTF.getText().trim();
 				
-				List<String> resol = new ArrayList<>(resolutionCCB.getCheckModel().getCheckedItems());
-				List<String> stat = new ArrayList<>(statusCCB.getCheckModel().getCheckedItems());
-				List<String> typ = new ArrayList<>(typeCCB.getCheckModel().getCheckedItems());
-				
-				for(int i = 0; i < resol.size(); i++) {
-					resol.set(i, removeWhiteSpaces(resol.get(i)));
-				}
-				
-				for(int i = 0; i < stat.size(); i++) {
-					stat.set(i, removeWhiteSpaces(stat.get(i)));
-				}
-				
-				for(int i = 0; i < typ.size(); i++) {
-					typ.set(i, removeWhiteSpaces(typ.get(i)));
-				}
-				
+
+				List<List<String>> params = getResolStatNType();
+
 				SniffControl sc = new SniffControl();
-				
-				sc.snifJira(name, resol, stat, typ);
+				sc.snifJira(name, params.get(0), params.get(1), params.get(2));
 			}
 		});
 		
@@ -111,7 +117,48 @@ public class GrapherController {
 				sc.snifJira(url);
 			}
 		});
+		
+		exportBtn.setOnMouseClicked(e->{
+			if(checkprojname()) {
+				String name = projnTF.getText().toString().trim();
+				
+				List<List<String>> params = getResolStatNType();//resol, stat, typ
+				
+				SniffControl sc = new SniffControl();
+				
+				sc.exportResultToCsv(name, params.get(0), params.get(1), params.get(2));
+			}
+		});
 	}
+	
+	
+
+	private List<List<String>> getResolStatNType() {
+		List<List<String>> p = new ArrayList<>();
+		
+		List<String> resol = new ArrayList<>(resolutionCCB.getCheckModel().getCheckedItems());
+		List<String> stat = new ArrayList<>(statusCCB.getCheckModel().getCheckedItems());
+		List<String> typ = new ArrayList<>(typeCCB.getCheckModel().getCheckedItems());
+		
+		for(int i = 0; i < resol.size(); i++) {
+			resol.set(i, removeWhiteSpaces(resol.get(i)));
+		}
+		
+		for(int i = 0; i < stat.size(); i++) {
+			stat.set(i, removeWhiteSpaces(stat.get(i)));
+		}
+		
+		for(int i = 0; i < typ.size(); i++) {
+			typ.set(i, removeWhiteSpaces(typ.get(i)));
+		}
+		
+		p.add(resol);
+		p.add(stat);
+		p.add(typ);
+		
+		return p;
+	}
+	
 
 	private String removeWhiteSpaces(String s) {
 		StringBuilder sb = new StringBuilder();

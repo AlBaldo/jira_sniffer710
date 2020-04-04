@@ -1,6 +1,9 @@
 package logic.control;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -19,9 +22,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.opencsv.CSVWriter;
+
 import logic.entity.ChartData;
 import logic.entity.JiraFilter;
 import logic.utils.Log;
+import logic.utils.MyConstants;
 import logic.utils.MyUtils;
 
 public class SniffControl {
@@ -45,14 +51,14 @@ public class SniffControl {
 	private void getDataByUrlAndShowGraph(JiraFilter jf) throws IOException, JSONException, ParseException {
 		List<JSONArray> tickets;
 		
-		tickets = retrieveTicketsId(jf.getUrl());	
+		tickets = retrieveTickets(jf.getUrl());	
 		if(jf.getType().size() == 1 && jf.getType().get(0).equals("Bug")) {
 			
 			List<LocalDate> bugsDt = getOrderedDatesFromIssues(tickets);
 			
 			List<ChartData> lcd = getChartDataFromDateList(bugsDt);
 
-			if(lcd == null) {
+			if(lcd.isEmpty()) {
 				MyUtils.fastAlert(":(", "Nothing to show");
 			}else {
 				MyIssueGrapher mig = new MyIssueGrapher(lcd);
@@ -65,7 +71,63 @@ public class SniffControl {
 			MyUtils.fastAlert("Unimplemented yet", "The tickets exist but tecnology is not there to show them.");
 		}
 	}
+	
 
+	public void exportResultToCsv(String name, List<String> resol, List<String> stat, List<String> typ) {
+		
+		if(!MyUtils.ynAlert("Sure?", "Do you want to create a result.csv file on Desktop?")) {
+			return;
+		}
+
+		String deskPath = System.getProperty("user.home") + "/Desktop";
+		File f = new File(deskPath + "/result.csv");
+		String[] nextline = new String[MyConstants.CSV_COLS.length];
+		JSONObject jo;
+		
+		try (CSVWriter cw = new CSVWriter(new BufferedWriter(new FileWriter(f)))){
+			
+			cw.writeNext(MyConstants.CSV_COLS);
+			
+			List<JSONArray> tickets = retrieveTickets((new JiraFilter(name, resol, stat, typ)).getUrl());
+			
+			for(JSONArray ja : tickets) {
+				int size = ja.length();
+				
+				for(int i = size-1; i > -1; i--) {
+					jo = ja.getJSONObject(i);
+					nextline[0] = jo.get("key").toString();
+					nextline[1] = jo.getJSONObject("fields").getString("resolutiondate");
+					nextline[2] = jo.getJSONObject("fields").getString("created");
+					cw.writeNext(nextline);
+				}
+			}
+			
+		} catch (IOException e) {
+			MyUtils.fastAlert("Oops!", "Unauthorized request.");
+		} catch (JSONException e) {
+			Log.getLog().infoMsg("No match found :(");
+		}
+		MyUtils.fastAlert("Complete!", "Export completed with no errors :)");
+	}
+
+	public void showUrl(String name, List<String> resol, List<String> stat, List<String> typ) {
+		MyUtils.fastAlert("Generated query URL", new JiraFilter(name, resol, stat, typ).getUrl());
+	}
+	
+
+	public void snifJira(String url) {
+		try {
+			getDataByUrlAndShowGraph(new JiraFilter(url));
+		}catch (IOException e) {
+			MyUtils.fastAlert("Oops!", "Unauthorized request.");
+		} catch (JSONException e) {
+			Log.getLog().infoMsg("No match found :(");
+		} catch (ParseException e) {
+			Log.getLog().debugMsg("Error parsing dates :(");
+		}
+	}
+	
+	/***support methods ahead***/
 	private List<ChartData> getChartDataFromDateList(List<LocalDate> bugsDt) {
 		List<ChartData> lcd = new ArrayList<>();
 		int cursor = 0;
@@ -74,8 +136,8 @@ public class SniffControl {
 		int year;
 		int y;
 		
-		if(bugsDt.size() == 0) {
-			return null;
+		if(bugsDt.isEmpty()) {
+			return lcd;
 		}
 		
 		do{
@@ -124,12 +186,12 @@ public class SniffControl {
 			
 			int size = ja.length();
 			for(int i = 0; i < size; i++) {
-				tmpstr = ja.getJSONObject(i).getJSONObject("fields").get("resolutiondate").toString();
+				tmpstr = ja.getJSONObject(i).getJSONObject(MyConstants.FIELDS_JSON).get("resolutiondate").toString();
 				if(tmpstr.equals("null")) {
-					dts.add(sdf.parse(ja.getJSONObject(i).getJSONObject("fields").get("created").toString())
+					dts.add(sdf.parse(ja.getJSONObject(i).getJSONObject(MyConstants.FIELDS_JSON).get("created").toString())
 							.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
 				}else {
-					dts.add(sdf.parse(ja.getJSONObject(i).getJSONObject("fields").get("resolutiondate").toString())
+					dts.add(sdf.parse(ja.getJSONObject(i).getJSONObject(MyConstants.FIELDS_JSON).get("resolutiondate").toString())
 						.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
 				}
 			}
@@ -143,20 +205,8 @@ public class SniffControl {
 			
 		return dts;
 	}
-
-	public void snifJira(String url) {
-		try {
-			getDataByUrlAndShowGraph(new JiraFilter(url));
-		}catch (IOException e) {
-			MyUtils.fastAlert("Oops!", "Unauthorized request.");
-		} catch (JSONException e) {
-			Log.getLog().infoMsg("No match found :(");
-		} catch (ParseException e) {
-			Log.getLog().debugMsg("Error parsing dates :(");
-		}
-	}
 	
-	public static List<JSONArray> retrieveTicketsId(String url) throws IOException, JSONException {
+	public static List<JSONArray> retrieveTickets(String url) throws IOException, JSONException {
 		   
 		Integer j = 0;
 		Integer i = 0;
@@ -168,7 +218,7 @@ public class SniffControl {
 		//Get JSON API for closed bugs w/ AV in the project
 		do {
 			//Only gets a max of 1000 at a time, so must do this multiple times if bugs >1000
-			j = i + 1000;
+			j = i + MyConstants.FILES_PER_CYCLE;
 			tmp = url + "&startAt=" + i.toString() + "&maxResults=" + j.toString();
 			
 			Log.getLog().infoMsg(tmp);			
@@ -178,7 +228,7 @@ public class SniffControl {
 			total = json.getInt("total");
 			t.add(issues);
 
-			i += 1000;
+			i += MyConstants.FILES_PER_CYCLE;
 			
 		}while (i < total);
 		
@@ -217,6 +267,5 @@ public class SniffControl {
 		
 		return sb.toString();
 	}
-
 
 }

@@ -163,7 +163,7 @@ public class MyIssueGrapher{
 		jbtns[3].addActionListener(e -> panel.zoomInRange(1, 2));
 		
 		xCrosshair.setLabelVisible(true);
-		xCrosshair.setLabelGenerator(ch -> dubToStr(ch.getValue()));
+		xCrosshair.setLabelGenerator(ch -> dateStrOfDoubleMillisString(ch.getValue()));
 		xCrosshair.setLabelOutlineVisible(false);
 		xCrosshair.setLabelBackgroundPaint(new Color(1f, 1f, 1f, 0.7f));
 		xCrosshair.setLabelFont(yCrosshair.getLabelFont().deriveFont(11f));
@@ -230,15 +230,15 @@ public class MyIssueGrapher{
     	
 		for(int i = 0; i < s; i++) {
 			rtp = (Month) t.getDataItem(i).getPeriod();
-			if(dubToStr(d).equals("1-" + rtp.getMonth() + "-" + rtp.getYearValue())) {
+			if(dateStrOfDoubleMillisString(d).equals("1-" + rtp.getMonth() + "-" + rtp.getYearValue())) {
 				return true;
 			}	
 		}
 		return false;
 	}
 
-    private String dubToStr(double x) {
-    	long millis = (new Double(x)).longValue();
+    private String dateStrOfDoubleMillisString(double x) {
+    	long millis = Math.round(x);
 
     	LocalDate date =
     		    Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate();

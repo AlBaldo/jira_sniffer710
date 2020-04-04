@@ -76,7 +76,13 @@
                         </VBox>
                      </children>
                   </HBox>
-                  <Button fx:id="goboxesBtn" mnemonicParsing="false" />
+                  <HBox alignment="TOP_CENTER" spacing="15.0">
+                     <children>
+                        <Button fx:id="goboxesBtn" mnemonicParsing="false" />
+                        <Button fx:id="exportBtn" maxHeight="40.0" maxWidth="40.0" mnemonicParsing="false" />
+                        <Button fx:id="showUrlBtn" mnemonicParsing="false" text="URL" />
+                     </children>
+                  </HBox>
                </children>
             </VBox>
             <VBox spacing="10.0">
