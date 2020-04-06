@@ -10,9 +10,10 @@ public class MyConstants {
 	public static final String FIELDS_JSON = "fields";
 	public static final String RES_DATE = "resolutiondate";
 	
-	public static final String[] CSV_COLS = {"id", MyConstants.RES_DATE, "created"};
-	
 	public static final int FILES_PER_CYCLE = 1000;
+	
+
+	public static final String filepath = System.getProperty("user.home") + "/Desktop/0-Magistrale/ISW2/Exam/log.csv";
 	
 	private MyConstants(){}
 }

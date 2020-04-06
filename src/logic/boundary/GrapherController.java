@@ -32,12 +32,6 @@ public class GrapherController {
 	Button goboxesBtn;
 	
 	@FXML
-	Button gourlBtn;
-	
-	@FXML
-	Button exportBtn;
-	
-	@FXML
 	Button showUrlBtn;
 	
 	@FXML
@@ -53,7 +47,7 @@ public class GrapherController {
 	TextField projnTF;
 	
 	@FXML
-	TextField urlTF;
+	TextField gitUrlTF;
 	
 	@FXML
 	public void initialize() {
@@ -62,6 +56,7 @@ public class GrapherController {
 		typeCCB.getItems().addAll(Arrays.asList(basetypes));
 		
 		
+		gitUrlTF.setText("https://github.com/apache/parquet-mr.git");
 		projnTF.setText("PARQUET");
 		resolutionCCB.getCheckModel().check("Fixed");
 		statusCCB.getCheckModel().check("Closed");
@@ -78,16 +73,10 @@ public class GrapherController {
 		
 		goboxesBtn.setPadding(new Insets(0, 3, 0, 3));
 		goboxesBtn.setGraphic(new ImageView(new Image("/resources/images/right_blue_arrow_40x40.png")));
-
-		gourlBtn.setPadding(new Insets(0, 3, 0, 3));
-		gourlBtn.setGraphic(new ImageView(new Image("/resources/images/right_blue_arrow_40x40.png")));
-		
-		exportBtn.setPadding(new Insets(0, 5, 0, 5));
-		exportBtn.setGraphic(new ImageView(new Image("/resources/images/file_export_icon_40x40.png")));
 		
 		showUrlBtn.setOnMouseClicked(e-> {
 			if(checkprojname()) {
-				String name = projnTF.getText().trim();
+				String name = projnTF.getText();
 				
 				List<List<String>> params = getResolStatNType();
 
@@ -97,36 +86,14 @@ public class GrapherController {
 		});
 		
 		goboxesBtn.setOnMouseClicked(e -> {
-			if(checkprojname()) {
-				String name = projnTF.getText().trim();
-				
+			if(checkprojname() && checkurlbox()) {
+				String name = projnTF.getText();
+				String url = gitUrlTF.getText();
 
 				List<List<String>> params = getResolStatNType();
 
 				SniffControl sc = new SniffControl();
-				sc.snifJira(name, params.get(0), params.get(1), params.get(2));
-			}
-		});
-		
-		gourlBtn.setOnMouseClicked(e->{
-			if(checkurlbox()) {
-				String url = urlTF.getText();
-				
-				SniffControl sc = new SniffControl();
-				
-				sc.snifJira(url);
-			}
-		});
-		
-		exportBtn.setOnMouseClicked(e->{
-			if(checkprojname()) {
-				String name = projnTF.getText().toString().trim();
-				
-				List<List<String>> params = getResolStatNType();//resol, stat, typ
-				
-				SniffControl sc = new SniffControl();
-				
-				sc.exportResultToCsv(name, params.get(0), params.get(1), params.get(2));
+				sc.snifJira(name, url, params.get(0), params.get(1), params.get(2));
 			}
 		});
 	}
@@ -196,7 +163,7 @@ public class GrapherController {
 	}
 
 	private boolean checkurlbox() {
-		if(urlTF.getText() == null || urlTF.getText().trim().isEmpty()) {
+		if(gitUrlTF.getText() == null || gitUrlTF.getText().trim().isEmpty()) {
 			MyUtils.fastAlert("Oops!", "You forgot to enter the url!");
 			return false;
 		}
@@ -205,7 +172,7 @@ public class GrapherController {
 
 	private boolean checkprojname() {
 		if(projnTF.getText() == null || projnTF.getText().trim().isEmpty()) {
-			MyUtils.fastAlert("Oops!", "You forgot to enter project name!");
+			MyUtils.fastAlert("Oops!", "You forgot to enter github project url!");
 			return false;
 		}
 		return true;

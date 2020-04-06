@@ -13,10 +13,12 @@ public class JiraFilter {
 	private List<String> status;
 	
 	private String name;
-	
+	private String gitUrl;
 
-	public JiraFilter(String n, List<String> resol, List<String> stat, List<String> typ) {
+
+	public JiraFilter(String n, String url, List<String> resol, List<String> stat, List<String> typ) {
 		this.name = n;
+		this.gitUrl = url;
 		this.resolution = resol;
 		this.status = stat;
 		this.type = typ;
@@ -155,7 +157,14 @@ public class JiraFilter {
 	}
 
 
+	public String getGitUrl() {
+		return gitUrl;
+	}
 
+
+	public void setGitUrl(String gitUrl) {
+		this.gitUrl = gitUrl;
+	}
 	
 	
 	

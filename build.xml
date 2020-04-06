@@ -5,12 +5,12 @@
               directory with the processing instruction <?eclipse.ant.import?>
               as the first entry and export the buildfile again. --><project basedir="." default="build" name="jira_sniffer710">
     <property environment="env"/>
-    <property name="ECLIPSE_HOME" value="../../eclipse/java-2020-03/eclipse/"/>
+    <property name="ECLIPSE_HOME" value="../../../eclipse/java-2020-03/eclipse/"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.8"/>
     <property name="source" value="1.8"/>
     <path id="JavaFX SDK.libraryclasspath">
-        <pathelement location="../../.p2/pool/plugins/org.eclipse.fx.ide.css.jfx8_3.5.0.201907240300.jar"/>
+        <pathelement location="../../../.p2/pool/plugins/org.eclipse.fx.ide.css.jfx8_3.5.0.201907240300.jar"/>
     </path>
     <path id="jira_sniffer710.classpath">
         <pathelement location="bin"/>
@@ -30,6 +30,9 @@
         <pathelement location="src/lib/jfreechartlib/servlet.jar"/>
         <pathelement location="src/lib/jfreechartlib/swtgraphics2d.jar"/>
         <pathelement location="src/lib/jfreechartlib/opencsv-5.1.jar"/>
+        <pathelement location="src/lib/jfreechartlib/org.eclipse.jgit-5.7.0.202003110725-r.jar"/>
+        <pathelement location="src/lib/jfreechartlib/slf4j-api-1.6.0.jar"/>
+        <pathelement location="src/lib/jfreechartlib/slf4j-simple-1.6.0.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
@@ -68,8 +71,13 @@
         <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
         <antcall target="build"/>
     </target>
-    <target name="Main (5)">
+    <target name="Main">
         <java classname="logic.Main" failonerror="true" fork="yes">
+            <classpath refid="jira_sniffer710.classpath"/>
+        </java>
+    </target>
+    <target name="Test">
+        <java classname="logic.utils.Test" failonerror="true" fork="yes">
             <classpath refid="jira_sniffer710.classpath"/>
         </java>
     </target>
