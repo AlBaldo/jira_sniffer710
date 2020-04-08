@@ -5,22 +5,24 @@ import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
+import javax.swing.JTextArea;
 
 public class MyUtils {
     
     public static void fastAlert(String title, String message) {
-    	Alert alert = new Alert(AlertType.INFORMATION);
-		alert.setTitle(title);
-		alert.setResizable(true);
-		alert.setHeaderText(null);
-		alert.setContentText(message);
 
-		alert.showAndWait();
+		JTextArea msg = new JTextArea(message.length()/40, message.length()/5);
+		msg.setEditable(false);
+		msg.setLineWrap(true);
+		msg.setWrapStyleWord(true);
+		msg.setText(message);
+		JOptionPane pane = new JOptionPane(msg, JOptionPane.ERROR_MESSAGE);;
+		msg.setBackground(pane.getBackground());
+		JDialog dialog = pane.createDialog(null, title);
+		dialog.setVisible(true);
     }
     
     public static boolean ynAlert(String title, String message) {

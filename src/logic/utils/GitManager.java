@@ -24,12 +24,12 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import logic.entity.GitCommitData;
 
 public class GitManager{
-	private String def_folder_path;
-	private String github_url;
+	private String defFolderPath;
+	private String githubUrl;
 	
 	public GitManager(String pUrl) throws InvalidRemoteException, TransportException, GitAPIException {
-		github_url = pUrl;
-		def_folder_path  = System.getProperty("user.home") + "/Desktop/0-Magistrale/ISW2/Exam/Project_analysis" + parseProjName();
+		githubUrl = pUrl;
+		defFolderPath  = System.getProperty("user.home") + "/Desktop/0-Magistrale/ISW2/Exam/Project_analysis" + parseProjName();
 		
 		checkIfRepoExists();
 		
@@ -38,10 +38,10 @@ public class GitManager{
 	}
 	
 	public List<GitCommitData> getLogForCurrentRepo() throws IOException, NoHeadException, GitAPIException {
-		List<GitCommitData> logMessages = new ArrayList<GitCommitData>();
+		List<GitCommitData> logMessages = new ArrayList<>();
 		
 		FileRepositoryBuilder builder = new FileRepositoryBuilder();
-		Repository repo = builder.setGitDir(new File(def_folder_path + "/.git")).setMustExist(true).build();
+		Repository repo = builder.setGitDir(new File(defFolderPath + "/.git")).setMustExist(true).build();
 		RevCommit rev;
 		PersonIdent pi;
 		
@@ -64,32 +64,32 @@ public class GitManager{
 
 	private String parseProjName() {
 		
-		int i = github_url.length()-1;
+		int i = githubUrl.length()-1;
 		for(; i >= 0; i--) {
-			if(github_url.charAt(i) == '/') {
+			if(githubUrl.charAt(i) == '/') {
 				break;
 			}
 		}
-		return github_url.substring(i, github_url.length()-4);
+		return githubUrl.substring(i, githubUrl.length()-4);
 	}
 
 	private void cloneOrUpdate() throws InvalidRemoteException, TransportException, GitAPIException{
 
-		File dir = new File(def_folder_path);
+		File dir = new File(defFolderPath);
 		
 	    if (!dir.exists()) dir.mkdirs();
 	    
-		if(dir.isDirectory() && !(dir.list().length>0)){
+		if(dir.isDirectory() && dir.list().length <= 0){
 			Log.getLog().infoMsg("Cloning repo...");
 			Git.cloneRepository()
-			  .setURI(github_url)
+			  .setURI(githubUrl)
 			  .setDirectory(dir)
 			  .call();
 
 			Log.getLog().infoMsg("Done.");
 		} else {
 			Log.getLog().infoMsg("Updating repo...");
-			try (Git git = new Git(new FileRepository(def_folder_path + "/.git"))) {
+			try (Git git = new Git(new FileRepository(defFolderPath + "/.git"))) {
 			    PullResult call = git.pull().call();
 				Log.getLog().infoMsg("Done: " + humanReadable(call));
 			 } catch (IOException e) {
@@ -115,7 +115,7 @@ public class GitManager{
 	private void checkIfRepoExists() throws InvalidRemoteException, TransportException, GitAPIException{
 		LsRemoteCommand lrc = new LsRemoteCommand(null);
 		
-		lrc.setRemote(github_url);
+		lrc.setRemote(githubUrl);
 		lrc.call();
 	}
 }

@@ -22,7 +22,7 @@ import org.json.JSONObject;
 public class JiraManager {
 	
 	public List<String> retrieveTicketsId(String url) throws IOException, JSONException {
-		List<String> tickid = new ArrayList<String>();
+		List<String> tickid = new ArrayList<>();
 		
 		Integer j = 0;
 		Integer i = 0;

@@ -58,13 +58,13 @@ public class SniffControl {
 		Log.getLog().infoMsg("Done.");
 		
 		List<String[]> tickNdates = getIssueBugsWithDate(jf, tickets);
-	
+
 		if(tickNdates.isEmpty()) {
 			MyUtils.fastAlert(":(", "Nothing to show");
 		}
 		
 		
-		List<LocalDate> bugDates = new ArrayList<LocalDate>();
+		List<LocalDate> bugDates = new ArrayList<>();
 		
 		for(String[] x : tickNdates) {
 			bugDates.add(LocalDate.parse(x[1]));
@@ -75,12 +75,14 @@ public class SniffControl {
 				return 0;
 			return o1.compareTo(o2);
 		});
-		
+
 		List<ChartData> lcd = getChartDataFromDateList(bugDates);
 		
-		List<String[]> csvStr = new ArrayList<String[]>();
+		addMissingMonthsToChartData(lcd);
 		
-		for(ChartData cd : lcd) {
+		List<String[]> csvStr = new ArrayList<>();
+		
+		for(ChartData cd : lcd){
 			String[] sa = new String[2];
 			sa[0] = MyUtils.getMonthValueOf(cd.getMonth()) + " " + cd.getYear();
 			sa[1] = cd.getY() + "";
@@ -90,10 +92,12 @@ public class SniffControl {
 		String[] cols = {"YearMonth", "NumberOfBugs"};
 		
 		if(jf.getType().size() == 1 && jf.getType().get(0).equals("Bug")) {
-				
-			if(MyUtils.ynAlert("Export", "Do you want to create a result.csv file in: " + MyConstants.filepath + "?")) {
+			if(lcd.isEmpty()) {
+				return;
+			}	
+			if(MyUtils.ynAlert("Export", "Do you want to create a result.csv file in: " + MyConstants.FILE_PATH + "?")) {
 				Log.getLog().infoMsg("Exporting...");
-				exportResultToCsv(MyConstants.filepath, cols, csvStr);
+				exportResultToCsv(MyConstants.FILE_PATH, cols, csvStr);
 				Log.getLog().infoMsg("Export done.");
 			}
 			
@@ -103,6 +107,7 @@ public class SniffControl {
 				MyIssueGrapher mig = new MyIssueGrapher(lcd);
 			
 				Log.getLog().infoMsg("About to show graph");
+				
 				mig.showGraph("Bug graph: " + jf.getName(), "Bugs", "Time");
 				
 				Log.getLog().infoMsg("Here it is.");
@@ -112,47 +117,103 @@ public class SniffControl {
 			MyUtils.fastAlert("Unimplemented yet", "The tickets exist but tecnology is not there to show them.");
 		}
 	}
+	
+	private void addMissingMonthsToChartData(List<ChartData> lcd) {
+		Log.getLog().infoMsg("Adding missing dates...");
+		for(int i = 0; i < lcd.size()-1; i++) {
+		
+			ChartData next = lcd.get(i+1);
+			ChartData curr = lcd.get(i);
+			
+			int cm = curr.getMonth();
+			int nm = next.getMonth();
+			
+			int cy = curr.getYear();
+			int ny = next.getYear();
+			
+
+			if(cy == ny){
+				checkForEqualYear(lcd, i, cm, nm, cy, ny);
+			}
+
+			if(ny > cy) {
+				checkForLessYear(lcd, i, cm, nm, cy, ny);
+			}
+		}
+	}
+
+	private void checkForEqualYear(List<ChartData> lcd, int i, int cm, int nm, int cy, int ny) {
+		if(nm > cm + 1) {
+			for(int j = 0; j < nm-cm-1; j++) {
+				lcd.add(i + 1, new ChartData(cm + j + 1, cy, 0));
+				i++;
+			}
+		}
+	}
+	
+	private void checkForLessYear(List<ChartData> lcd, int i, int cm, int nm, int cy, int ny) {
+		for(int j = 0; j < ny-cy; j++) {
+			int mm = 12 - cm;
+			for(int z = 0; z < mm; z++) {
+				lcd.add(i+1, new ChartData(cm + z + 1, cy+j, 0));
+				i++;
+			}
+			cm = 0;
+		}
+		
+		for(int z = 0; z < nm-1; z++) {
+			lcd.add(i+1, new ChartData(z + 1, ny, 0));
+			i++;
+		}
+		
+	}
 
 	private List<String[]> getIssueBugsWithDate(JiraFilter jf, List<String> tickets) {
-		List<String[]> lcd = new ArrayList<String[]>();
+		List<String[]> lcd = new ArrayList<>();
 		
-		List<GitCommitData> log = getCommitDataFromLog(jf.getGitUrl(), tickets);
+		List<GitCommitData> log = getCommitDataFromLog();
 
-		getIssueIdForGitCommits(log, tickets);
+		getIssueIdForGitCommits(log);
 		
 		for(String s : tickets) {
-			List<GitCommitData> curr = new ArrayList<GitCommitData>();
+			List<GitCommitData> curr = new ArrayList<>();
 			for(GitCommitData g : log) {
 				if(g.getIssueId().equals(s)) {
 					curr.add(g);
 				}
 			}
-			String[] dat = new String[2];
-			dat[0] = s;
 			
 			if(curr.isEmpty()) {
 				continue;
-			}else if(curr.size() == 1) {
+			}
+
+			String[] dat = new String[2];
+			dat[0] = s;
+			
+			if(curr.size() == 1) {
 				dat[1] = curr.get(0).getDate().toString();
 				lcd.add(dat);
-			}else {
-				dat[1] = curr.get(0).getDate().toString();
-				LocalDate currdate = curr.get(0).getDate();
-				
-				for(GitCommitData gcdCurr : curr) {
-					if(gcdCurr.getDate().isAfter(currdate)) {
-						dat[1] = gcdCurr.getDate().toString();
-					}
+				continue;
+			}
+			
+			dat[1] = curr.get(0).getDate().toString();
+			LocalDate currdate = curr.get(0).getDate();
+			
+			for(GitCommitData gcdCurr : curr) {
+				if(gcdCurr.getDate().isAfter(currdate)) {
+					dat[1] = gcdCurr.getDate().toString();
 				}
-				lcd.add(dat);
-			}			
+			}
+			
+			lcd.add(dat);
+					
 		}
 		
 		return lcd;
 	}
 	
 
-	public void getIssueIdForGitCommits(List<GitCommitData> gcds, List<String> tic){
+	public void getIssueIdForGitCommits(List<GitCommitData> gcds){
 		Log.getLog().infoMsg("Parsing commits comments...");
 		
 		for(GitCommitData g : gcds) {
@@ -162,9 +223,9 @@ public class SniffControl {
 		Log.getLog().infoMsg("Done");
 	}
 
-	public List<GitCommitData> getCommitDataFromLog(String pgUrl, List<String> tickets) {
+	public List<GitCommitData> getCommitDataFromLog() {
 		try {
-			GitManager gm = new GitManager(pgUrl);
+			GitManager gm = new GitManager(jf.getGitUrl());
 			
 			List<GitCommitData> log = gm.getLogForCurrentRepo();
 			Log.getLog().infoMsg("Got log messages");
@@ -173,15 +234,15 @@ public class SniffControl {
 			
 			
 		} catch (InvalidRemoteException e) {
-			MyUtils.fastAlert("Error:", "InvalidRemoteException: " + e.getMessage());
+			MyUtils.fastAlert(MyConstants.ERROR, "InvalidRemoteException: " + e.getMessage());	
 		} catch (TransportException e) {
-			MyUtils.fastAlert("Error:", "TransportException: " + e.getMessage());
+			MyUtils.fastAlert(MyConstants.ERROR, "TransportException: " + e.getMessage());
 		} catch (GitAPIException e) {
-			MyUtils.fastAlert("Error:", "GitAPIException: " + e.getMessage());
+			MyUtils.fastAlert(MyConstants.ERROR, "GitAPIException: " + e.getMessage());
 		} catch (IOException e) {
-			MyUtils.fastAlert("Error:", "IOException: " + e.getMessage());
+			MyUtils.fastAlert(MyConstants.ERROR, "IOException: " + e.getMessage());
 		}
-		return new ArrayList<GitCommitData>();
+		return new ArrayList<>();
 	}
 
 	public void exportResultToCsv(String filepath, String[] cols, List<String[]> vals ) {
@@ -202,7 +263,8 @@ public class SniffControl {
 	}
 
 	public void showUrl(String name, List<String> resol, List<String> stat, List<String> typ) {
-		MyUtils.fastAlert("Generated query URL", new JiraFilter(name, null, resol, stat, typ).getUrl());
+		MyUtils.fastAlert("Generated query URL", new JiraFilter(name, null, resol, stat, typ).getUrl() +  
+											"&startAt=0&maxResults=1000");
 	}
 
 	
@@ -210,7 +272,6 @@ public class SniffControl {
 	/***support methods ahead***/
 	private List<ChartData> getChartDataFromDateList(List<LocalDate> bugsDt) {
 		List<ChartData> lcd = new ArrayList<>();
-		int cursor = 0;
 		
 		int month;
 		int year;
@@ -219,8 +280,9 @@ public class SniffControl {
 		if(bugsDt.isEmpty()) {
 			return lcd;
 		}
-		
-		do{
+
+		for(int cursor = 0; cursor < bugsDt.size(); cursor++) {
+			
 			month = bugsDt.get(cursor).getMonthValue();
 			year = bugsDt.get(cursor).getYear();
 			y = getNBugsForCurrent(bugsDt, cursor + 1);
@@ -228,8 +290,7 @@ public class SniffControl {
 			lcd.add(new ChartData(month, year, y));
 			
 			cursor += y;
-
-		}while(cursor + 1 < bugsDt.size());
+		}
 		
 		return lcd;
 	}
