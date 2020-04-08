@@ -19,7 +19,7 @@ public class MyUtils {
 		msg.setLineWrap(true);
 		msg.setWrapStyleWord(true);
 		msg.setText(message);
-		JOptionPane pane = new JOptionPane(msg, JOptionPane.ERROR_MESSAGE);;
+		JOptionPane pane = new JOptionPane(msg, JOptionPane.ERROR_MESSAGE);
 		msg.setBackground(pane.getBackground());
 		JDialog dialog = pane.createDialog(null, title);
 		dialog.setVisible(true);

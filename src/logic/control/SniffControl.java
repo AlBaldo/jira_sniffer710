@@ -57,7 +57,7 @@ public class SniffControl {
 		tickets = jm.retrieveTicketsId(jf.getUrl());
 		Log.getLog().infoMsg("Done.");
 		
-		List<String[]> tickNdates = getIssueBugsWithDate(jf, tickets);
+		List<String[]> tickNdates = getIssueBugsWithDate(tickets);
 
 		if(tickNdates.isEmpty()) {
 			MyUtils.fastAlert(":(", "Nothing to show");
@@ -133,7 +133,7 @@ public class SniffControl {
 			
 
 			if(cy == ny){
-				checkForEqualYear(lcd, i, cm, nm, cy, ny);
+				checkForEqualYear(lcd, i, cm, nm, cy);
 			}
 
 			if(ny > cy) {
@@ -142,7 +142,7 @@ public class SniffControl {
 		}
 	}
 
-	private void checkForEqualYear(List<ChartData> lcd, int i, int cm, int nm, int cy, int ny) {
+	private void checkForEqualYear(List<ChartData> lcd, int i, int cm, int nm, int cy) {
 		if(nm > cm + 1) {
 			for(int j = 0; j < nm-cm-1; j++) {
 				lcd.add(i + 1, new ChartData(cm + j + 1, cy, 0));
@@ -168,7 +168,7 @@ public class SniffControl {
 		
 	}
 
-	private List<String[]> getIssueBugsWithDate(JiraFilter jf, List<String> tickets) {
+	private List<String[]> getIssueBugsWithDate(List<String> tickets) {
 		List<String[]> lcd = new ArrayList<>();
 		
 		List<GitCommitData> log = getCommitDataFromLog();
@@ -182,36 +182,37 @@ public class SniffControl {
 					curr.add(g);
 				}
 			}
-			
-			if(curr.isEmpty()) {
-				continue;
-			}
 
-			String[] dat = new String[2];
-			dat[0] = s;
-			
-			if(curr.size() == 1) {
-				dat[1] = curr.get(0).getDate().toString();
-				lcd.add(dat);
-				continue;
+			if(!curr.isEmpty()) {
+				lcd.add(lastDateForGitCommitData(curr, s));
 			}
-			
-			dat[1] = curr.get(0).getDate().toString();
-			LocalDate currdate = curr.get(0).getDate();
-			
-			for(GitCommitData gcdCurr : curr) {
-				if(gcdCurr.getDate().isAfter(currdate)) {
-					dat[1] = gcdCurr.getDate().toString();
-				}
-			}
-			
-			lcd.add(dat);
-					
 		}
+		
 		
 		return lcd;
 	}
 	
+
+	private String[] lastDateForGitCommitData(List<GitCommitData> curr, String s) {
+		String[] dat = new String[2];
+		dat[0] = s;
+		
+		if(curr.size() == 1) {
+			dat[1] = curr.get(0).getDate().toString();
+			return dat;
+		}
+		
+		dat[1] = curr.get(0).getDate().toString();
+		LocalDate currdate = curr.get(0).getDate();
+		
+		for(GitCommitData gcdCurr : curr) {
+			if(gcdCurr.getDate().isAfter(currdate)) {
+				dat[1] = gcdCurr.getDate().toString();
+			}
+		}
+		return dat;
+		
+	}
 
 	public void getIssueIdForGitCommits(List<GitCommitData> gcds){
 		Log.getLog().infoMsg("Parsing commits comments...");
@@ -276,12 +277,13 @@ public class SniffControl {
 		int month;
 		int year;
 		int y;
+		int cursor = 0;
 		
 		if(bugsDt.isEmpty()) {
 			return lcd;
 		}
 
-		for(int cursor = 0; cursor < bugsDt.size(); cursor++) {
+		do{
 			
 			month = bugsDt.get(cursor).getMonthValue();
 			year = bugsDt.get(cursor).getYear();
@@ -290,7 +292,7 @@ public class SniffControl {
 			lcd.add(new ChartData(month, year, y));
 			
 			cursor += y;
-		}
+		}while(cursor < bugsDt.size());
 		
 		return lcd;
 	}
