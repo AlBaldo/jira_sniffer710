@@ -77,7 +77,7 @@ public class SniffControl {
 		});
 
 		List<ChartData> lcd = getChartDataFromDateList(bugDates);
-		
+
 		addMissingMonthsToChartData(lcd);
 		
 		List<String[]> csvStr = new ArrayList<>();
@@ -188,7 +188,6 @@ public class SniffControl {
 			}
 		}
 		
-		
 		return lcd;
 	}
 	
@@ -201,7 +200,7 @@ public class SniffControl {
 			dat[1] = curr.get(0).getDate().toString();
 			return dat;
 		}
-		
+
 		dat[1] = curr.get(0).getDate().toString();
 		LocalDate currdate = curr.get(0).getDate();
 		
@@ -290,9 +289,9 @@ public class SniffControl {
 			y = getNBugsForCurrent(bugsDt, cursor + 1);
 			
 			lcd.add(new ChartData(month, year, y));
-			
+
 			cursor += y;
-		}while(cursor < bugsDt.size());
+		}while(cursor < bugsDt.size() - 1);
 		
 		return lcd;
 	}
